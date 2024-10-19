@@ -1,0 +1,82 @@
+03:30:27 **** Incremental Build of configuration Debug for project bleiot ****
+make all 
+arm-none-eabi-gcc -IInc/ -IMiddlewares/ST/BlueNRG-MS/includes/ -IMiddlewares/ST/BlueNRG-MS/hci/hci_tl_patterns/Basic/ -IMiddlewares/ST/BlueNRG-MS/utils/ -IDrivers/STM32F4xx_HAL_Driver/Inc/ -IDrivers/CMSIS/Device/ST/STM32F4xx/Include/ -IDrivers/CMSIS/Include/ -IDrivers/BSP/STM32F4xx-Nucleo/ -IDrivers/BSP/X-NUCLEO-IDB04A1 -IMiddlewares/ST/STM32_BlueNRG/SimpleBlueNRG_HCI/includes -IMiddlewares/ST/STM32_BlueNRG/Interface -IDrivers/BSP/X-NUCLEO-IDB0xA1 -IDrivers/BSP/X_NUCLEO_IKS01A1 -IDrivers/BSP/X_NUCLEO_IKS01A2 -IDrivers/BSP/Components/Common -IDrivers/BSP/Components/hts221 -IDrivers/BSP/Components/lis3mdl -IDrivers/BSP/Components/lps22hb -IDrivers/BSP/Components/lps25hb -IDrivers/BSP/Components/lsm303agr -IDrivers/BSP/Components/lsm6ds0 -IDrivers/BSP/Components/lsm6ds3 -IDrivers/BSP/Components/lsm6dsl -IDrivers/BSP/Components/lsm6dsm -IDrivers/BSP/Components/stc3115 -IDrivers/BSP/X_NUCLEO_IKS01A1 -IDrivers/BSP/X_NUCLEO_IKS01A2 -DSTM32F411xE -ggdb -O0 -fcommon -D ARM_MATH_CM4 -L  -mlittle-endian -mthumb -mcpu=cortex-m4 -mthumb-interwork -Wl,--gc-sections -mfpu=fpv4-sp-d16 -mfloat-abi=hard -specs=nano.specs -fsingle-precision-constant -Wall -Wextra -Warray-bounds -Wno-unused-parameter -TDevice/gcc.ld -mfloat-abi=hard -lc -lgcc -lgcov -lm -Wl,-Map=template.elf.map Middlewares/ST/BlueNRG-MS/utils/ble_list.c Middlewares/ST/BlueNRG-MS/hci/hci_le.c Middlewares/ST/BlueNRG-MS/hci/hci_tl_patterns/Basic/hci_tl.c Middlewares/ST/BlueNRG-MS/hci/controller/bluenrg_gap_aci.c Middlewares/ST/BlueNRG-MS/hci/controller/bluenrg_gatt_aci.c Middlewares/ST/BlueNRG-MS/hci/controller/bluenrg_hal_aci.c Middlewares/ST/BlueNRG-MS/hci/controller/bluenrg_l2cap_aci.c Middlewares/ST/BlueNRG-MS/hci/controller/bluenrg_updater_aci.c Middlewares/ST/BlueNRG-MS/hci/controller/bluenrg_utils_small.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_exti.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_i2c.c Src/system_stm32f4xx.c Src/hci_tl_interface.c Src/main.c Src/sensor_service.c Src/stm32f4xx_hal_msp.c Src/stm32f4xx_it.c Src/stm32f4xx_nucleo.c Src/stm32f4xx_nucleo_bus.c SW4STM32/startup_stm32f411xe.s SW4STM32/syscalls.c Src/tcs34725.c Src/sht4x.c Src/drv_uart.c Src/drv_i2c.c -o template.elf
+Src/main.c: In function 'main':
+Src/main.c:62:10: warning: implicit declaration of function 'sht4x_probe' [-Wimplicit-function-declaration]
+   62 |   while (sht4x_probe() != 0) {
+      |          ^~~~~~~~~~~
+Src/main.c:66:4: warning: implicit declaration of function 'tcs34725_init' [-Wimplicit-function-declaration]
+   66 |    tcs34725_init();
+      |    ^~~~~~~~~~~~~
+Src/main.c:43:13: warning: unused variable 'i' [-Wunused-variable]
+   43 |         int i;
+      |             ^
+Src/main.c: In function 'SendEnvironmentalData':
+Src/main.c:150:15: warning: implicit declaration of function 'sht4x_measure_blocking_read' [-Wimplicit-function-declaration]
+  150 |         ret = sht4x_measure_blocking_read(&temperature, &humidity);
+      |               ^~~~~~~~~~~~~~~~~~~~~~~~~~~
+Src/main.c:151:5: warning: implicit declaration of function 'tcs34725_read_color' [-Wimplicit-function-declaration]
+  151 |     tcs34725_read_color(&red, &green, &blue, &clear);
+      |     ^~~~~~~~~~~~~~~~~~~
+Src/main.c:152:22: warning: implicit declaration of function 'calculateColorTemperature' [-Wimplicit-function-declaration]
+  152 |         color_temp = calculateColorTemperature(red, green, blue, &x, &y);
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+Src/main.c:149:17: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+  149 |         int16_t ret ;
+      |                 ^~~
+Src/main.c:145:55: warning: unused variable 'lux' [-Wunused-variable]
+  145 |         uint16_t red, green, blue, clear, color_temp, lux;
+      |                                                       ^~~
+Src/sensor_service.c: In function 'Environmental_Update':
+Src/sensor_service.c:165:11: warning: unused variable 'buff_hum' [-Wunused-variable]
+  165 |   uint8_t buff_hum[2];
+      |           ^~~~~~~~
+Src/sensor_service.c: At top level:
+Src/sensor_service.c:34:17: warning: 'YCharHandle' defined but not used [-Wunused-variable]
+   34 | static uint16_t YCharHandle;
+      |                 ^~~~~~~~~~~
+Src/sensor_service.c:33:17: warning: 'XCharHandle' defined but not used [-Wunused-variable]
+   33 | static uint16_t XCharHandle;
+      |                 ^~~~~~~~~~~
+Src/sensor_service.c:32:17: warning: 'HumidityCharHandle' defined but not used [-Wunused-variable]
+   32 | static uint16_t HumidityCharHandle;
+      |                 ^~~~~~~~~~~~~~~~~~
+Src/sht4x.c: In function 'sht4x_measure_blocking_read':
+Src/sht4x.c:33:41: warning: passing argument 2 of 'i2c1_ReadBuffer' from incompatible pointer type [-Wincompatible-pointer-types]
+   33 |     ret = i2c1_ReadBuffer(SHT4X_ADDRESS,words,SENSIRION_NUM_WORDS(words));
+      |                                         ^~~~~
+      |                                         |
+      |                                         uint16_t * {aka short unsigned int *}
+In file included from Inc/sht4x.h:4,
+                 from Src/sht4x.c:2:
+Inc/drv_i2c.h:23:50: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'uint16_t *' {aka 'short unsigned int *'}
+   23 | int i2c1_ReadBuffer(uint16_t addrSlave, uint8_t *data, int n_data);
+      |                                         ~~~~~~~~~^~~~
+Src/sht4x.c: In function 'sht4x_read_serial':
+Src/sht4x.c:63:43: warning: passing argument 2 of 'i2c1_WriteBuffer' discards 'const' qualifier from pointer target type [-Wdiscarded-qualifiers]
+   63 |     ret = i2c1_WriteBuffer(SHT4X_ADDRESS, &cmd, 1);
+      |                                           ^~~~
+Inc/drv_i2c.h:20:51: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'const uint8_t *' {aka 'const unsigned char *'}
+   20 | int i2c1_WriteBuffer(uint16_t addrSlave, uint8_t *data, int n_data);
+      |                                          ~~~~~~~~~^~~~
+Src/sht4x.c:67:42: warning: passing argument 2 of 'i2c1_ReadBuffer' from incompatible pointer type [-Wincompatible-pointer-types]
+   67 |     ret = i2c1_ReadBuffer(SHT4X_ADDRESS, serial_words,2);
+      |                                          ^~~~~~~~~~~~
+      |                                          |
+      |                                          uint16_t * {aka short unsigned int *}
+Inc/drv_i2c.h:23:50: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'uint16_t *' {aka 'short unsigned int *'}
+   23 | int i2c1_ReadBuffer(uint16_t addrSlave, uint8_t *data, int n_data);
+      |                                         ~~~~~~~~~^~~~
+Src/sht4x.c: In function 'sht4x_measure_blocking_read':
+Src/sht4x.c:30:8: warning: 'ret' is used uninitialized [-Wuninitialized]
+   30 |     if (ret)
+      |        ^
+Src/sht4x.c:26:13: note: 'ret' was declared here
+   26 |     int16_t ret;
+      |             ^~~
+/opt/st/stm32cubeide_1.15.0/plugins/com.st.stm32cube.ide.mcu.externaltools.gnu-tools-for-stm32.12.3.rel1.linux64_1.0.100.202403111256/tools/bin/../lib/gcc/arm-none-eabi/12.3.1/../../../../arm-none-eabi/bin/ld: warning: template.elf has a LOAD segment with RWX permissions
+arm-none-eabi-objcopy -O ihex template.elf   template.hex
+arm-none-eabi-objcopy -O binary template.elf template.bin
+
+03:30:45 Build Finished. 0 errors, 17 warnings. (took 17s.307ms)
+

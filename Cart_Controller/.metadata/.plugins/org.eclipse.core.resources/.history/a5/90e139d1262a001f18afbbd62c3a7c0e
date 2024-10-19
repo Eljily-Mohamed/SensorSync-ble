@@ -1,0 +1,393 @@
+#include "sensor_service.h"
+#include "bluenrg_gap_aci.h"
+#include "bluenrg_gatt_aci.h"
+#include "bluenrg_hal_aci.h"
+
+#include "stm32f4xx_nucleo.h"
+#include "util.h"
+
+volatile int connected = FALSE;
+volatile uint8_t set_connectable = 1;
+volatile uint16_t connection_handle = 0;
+volatile uint8_t notification_enabled = FALSE;
+volatile uint8_t start_read_tx_char_handle = FALSE;
+volatile uint8_t start_read_rx_char_handle = FALSE;
+volatile uint8_t end_read_tx_char_handle = FALSE;
+volatile uint8_t end_read_rx_char_handle = FALSE;
+
+uint16_t tx_handle;
+uint16_t rx_handle;
+
+uint16_t sampleServHandle, TXCharHandle, RXCharHandle;
+
+extern uint8_t bnrg_expansion_board;
+extern BLE_RoleTypeDef BLE_Role;
+
+static uint16_t HWServW2STHandle;
+
+static uint16_t ledServiceHandle;
+static uint16_t switchLedCharHandle;
+static uint16_t stateLedCharHandle;
+static uint16_t TemperatureCharHandle;
+static uint16_t HumidityCharHandle;
+
+int humidity_subscription = 0;
+int temperature_subscription = 0;
+int LedState = 0;
+
+//========================================================================
+tBleStatus Add_HWServW2ST_Service(void)
+{
+	tBleStatus ret;
+	uint8_t primary_short_uuid[2];
+
+	HAL_Delay(1000); // !! Delay important, sinon les modifs de services/chars ne sont pas prises en compte.
+	//-----------------------------------------------------------------------------------------
+	// Light switch service 0xFF10
+	primary_short_uuid[0] = 0x10;
+	primary_short_uuid[1] = 0xFF;
+	ret = aci_gatt_add_serv(UUID_TYPE_16,  primary_short_uuid, PRIMARY_SERVICE,
+	                          13,&ledServiceHandle);
+										if (ret != BLE_STATUS_SUCCESS) {	goto fail;}
+	HAL_Delay(100);
+
+	// SWITCH LED CHARACTERISTIC : 0xFF12
+	primary_short_uuid[0] = 0x12;
+	primary_short_uuid[1] = 0xFF;
+	ret =  aci_gatt_add_char(ledServiceHandle, UUID_TYPE_16, primary_short_uuid, 1,
+												CHAR_PROP_WRITE|CHAR_PROP_WRITE_WITHOUT_RESP,
+					                           ATTR_PERMISSION_NONE,
+											   GATT_NOTIFY_ATTRIBUTE_WRITE  ,
+					                           16, 0, &switchLedCharHandle);
+										if (ret != BLE_STATUS_SUCCESS) {	goto fail;}
+	HAL_Delay(100);
+
+	// STATE LED CHARACTERISTIC : 0xFF11
+	primary_short_uuid[0] = 0x11;
+	primary_short_uuid[1] = 0xFF;
+	ret =  aci_gatt_add_char(ledServiceHandle, UUID_TYPE_16, primary_short_uuid, 2,
+					                           CHAR_PROP_NOTIFY|CHAR_PROP_READ,
+					                           ATTR_PERMISSION_NONE,
+					                           GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+					                           16, 0, &stateLedCharHandle);
+
+										if (ret != BLE_STATUS_SUCCESS) {	goto fail;}
+	HAL_Delay(100);
+	//-----------------------------------------------------------------------------------------
+	//ENVIRONMENT SERVICE : 0x181A
+	primary_short_uuid[0] = 0x1A;
+	primary_short_uuid[1] = 0x18;
+	ret = aci_gatt_add_serv(UUID_TYPE_16,  primary_short_uuid, PRIMARY_SERVICE,
+	                          13,&HWServW2STHandle);
+
+										if (ret != BLE_STATUS_SUCCESS) {	goto fail;}
+	HAL_Delay(100);
+
+	// TEMPERATURE CHAR : 0x2A6E
+	primary_short_uuid[0] = 0x6E;
+	primary_short_uuid[1] = 0x2A;
+	ret =  aci_gatt_add_char(HWServW2STHandle, UUID_TYPE_16, primary_short_uuid, 2,
+											    CHAR_PROP_NOTIFY|CHAR_PROP_READ,
+											    ATTR_PERMISSION_NONE,
+											    GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+											   16, 0, &TemperatureCharHandle);
+
+
+										if (ret != BLE_STATUS_SUCCESS) {	goto fail;}
+	HAL_Delay(100);
+
+	// humidity 0x2A6E
+	primary_short_uuid[0] = 0x6D;
+	primary_short_uuid[1] = 0x2A;
+	ret =  aci_gatt_add_char(HWServW2STHandle, UUID_TYPE_16, primary_short_uuid, 2,
+											    CHAR_PROP_NOTIFY|CHAR_PROP_READ,
+											    ATTR_PERMISSION_NONE,
+											   GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+											   16, 0, &HumidityCharHandle);
+
+									if (ret != BLE_STATUS_SUCCESS) {	goto fail;}
+	HAL_Delay(100);
+
+
+	 return BLE_STATUS_SUCCESS;
+
+	 fail:	return BLE_STATUS_ERROR;
+
+}
+//========================================================================
+tBleStatus Environmental_Update(hum_int, temp_int,x_int,y_int,color_temp)
+{
+  tBleStatus ret;
+  uint8_t buff_Temp[2];
+  uint8_t buff_hum[2];
+
+  STORE_LE_16(buff_Temp,Temp);
+  ret = aci_gatt_update_char_value(HWServW2STHandle, TemperatureCharHandle, 0, 2,buff_Temp);
+
+  STORE_LE_16(buff_hum,Hum);
+  ret = aci_gatt_update_char_value(HWServW2STHandle, HumidityCharHandle, 0, 2,buff_hum);
+
+  STORE_LE_16(buff_hum,Hum);
+  ret = aci_gatt_update_char_value(HWServW2STHandle, HumidityCharHandle, 0, 2,buff_hum);
+
+  STORE_LE_16(buff_hum,Hum);
+  ret = aci_gatt_update_char_value(HWServW2STHandle, HumidityCharHandle, 0, 2,buff_hum);
+
+  STORE_LE_16(buff_hum,Hum);
+  ret = aci_gatt_update_char_value(HWServW2STHandle, HumidityCharHandle, 0, 2,buff_hum);
+
+  if (ret != BLE_STATUS_SUCCESS) {    return BLE_STATUS_ERROR;  }
+  return BLE_STATUS_SUCCESS;
+}
+
+//========================================================================
+
+void Make_Connection(void)
+{  
+  tBleStatus ret;
+  const char local_name[] = {AD_TYPE_COMPLETE_LOCAL_NAME,'B','l','u','e','N','R','G','_','E','N','I','B'};
+    
+  hci_le_set_scan_resp_data(0,NULL);	  /* disable scan response */
+    
+  printf("General Discoverable Mode \n\r");
+  ret = aci_gap_set_discoverable(ADV_DATA_TYPE, ADV_INTERV_MIN, ADV_INTERV_MAX, PUBLIC_ADDR,
+                                   NO_WHITE_LIST_USE, 13, local_name, 0, NULL, 0, 0);
+  printf("%d\n\r",ret);
+}
+
+//========================================================================
+void receiveData(uint8_t* data_buffer, uint8_t Nb_bytes)
+{
+  BSP_LED_Toggle(LED2);
+
+  for(int i = 0; i < Nb_bytes; i++) {
+    printf("%c", data_buffer[i]);
+  }
+  fflush(stdout);
+}
+//========================================================================
+void sendData(uint8_t* data_buffer, uint8_t Nb_bytes)
+{
+    aci_gatt_write_without_response(connection_handle, rx_handle+1, Nb_bytes, data_buffer);
+}
+//========================================================================
+void enableNotification(void)
+{
+  uint8_t client_char_conf_data[] = {0x01, 0x00}; // Enable notifications
+  
+  uint32_t tickstart = HAL_GetTick();
+  
+  while(aci_gatt_write_charac_descriptor(connection_handle, tx_handle+2, 2, client_char_conf_data)==BLE_STATUS_NOT_ALLOWED){
+    /* Radio is busy */
+    if ((HAL_GetTick() - tickstart) > (10*HCI_DEFAULT_TIMEOUT_MS)) break;
+  }
+  notification_enabled = TRUE;
+}
+
+//========================================================================
+
+tBleStatus LED_Update(uint8_t LedStatus, uint8_t* data_buffer, uint8_t Nb_bytes)
+{
+  tBleStatus ret;
+  uint8_t buff[1];
+
+  buff[0] = LedStatus;
+  if (LedStatus == 1)
+  	  	  	  	  	  {
+	  	  	  	  	  BSP_LED_Off(LED2);
+	  	  	  	  	  LedState=0;
+	  	  	  	  	  buff[0]=0;
+	  	  	  	  	  ret = aci_gatt_update_char_value(ledServiceHandle, stateLedCharHandle, 0, 1,buff);
+  	  	  	  	  	  }
+  else				  {
+	  	  	  	  	  BSP_LED_On(LED2);
+	  	  	  	  	  LedState=1;
+	  	  	  	  	  buff[0]=1;
+  	  	  	  	  	  ret = aci_gatt_update_char_value(ledServiceHandle, stateLedCharHandle, 0, 1,buff);
+  	  	  	  	  	  }
+
+  if (ret != BLE_STATUS_SUCCESS)
+  {
+    printf("Error Updating led Char\r\n");
+    return BLE_STATUS_ERROR;
+  }
+  for(int i = 0; i < Nb_bytes; i++)
+  {
+    printf("data_buff=%d \n\r", data_buffer[i]);
+  }
+  return BLE_STATUS_SUCCESS;
+}
+
+//========================================================================
+void Attribute_Modified_CB(uint16_t handle, uint8_t data_length, uint8_t *att_data)
+{
+
+	if(handle == HumidityCharHandle + 2)
+	{
+		printf("Humidity Char Handle \n\r");
+		switch(att_data[0])
+						{
+						case 1 :	humidity_subscription = 1;
+									break;
+						case 0 :	humidity_subscription = 0;
+									break;
+						default : 	break;
+						}
+	}
+	else
+	if (handle == TemperatureCharHandle + 2)
+	{
+		printf("temperature char handle \n\r");
+		switch(att_data[0])
+						{
+						case 1 :	temperature_subscription = 1;
+									break;
+						case 0 :	temperature_subscription = 0;
+									break;
+						default : 	break;
+						}
+	}
+	else
+	if (handle == stateLedCharHandle + 2)
+	{
+		printf("STATE LED CHANGE : attr_handle ==  %d + 1 \n\r", stateLedCharHandle);
+	}
+	else
+	if (handle == switchLedCharHandle + 1)
+	{
+		  printf("SWITCH LED CHANGE : attr_handle ==  %d + 1 \n\r", switchLedCharHandle);
+		  LED_Update(LedState,att_data, data_length);
+	}
+}
+
+//========================================================================
+void GAP_ConnectionComplete_CB(uint8_t addr[6], uint16_t handle)
+{  
+  connected = TRUE;
+  connection_handle = handle;
+  
+  printf("Connected to device:\r\n");
+  for(int i = 5; i > 0; i--){
+    printf("%02X-", addr[i]);
+  }
+  printf("%02X\n\r", addr[0]);
+}
+//========================================================================
+void GAP_DisconnectionComplete_CB(void)
+{
+  connected = FALSE;
+  
+  printf("Disconnected\n\r");
+  /* Make the device connectable again. */
+  set_connectable = TRUE;
+  notification_enabled = FALSE;
+  start_read_tx_char_handle = FALSE;
+  start_read_rx_char_handle = FALSE;
+  end_read_tx_char_handle = FALSE;
+  end_read_rx_char_handle = FALSE;
+}
+
+//========================================================================
+void GATT_Notification_CB(uint16_t attr_handle, uint8_t attr_len, uint8_t *attr_value)
+{
+  if (attr_handle == tx_handle+1) {
+    receiveData(attr_value, attr_len);
+  }
+}
+//========================================================================
+void user_notify(void * pData)
+{
+  hci_uart_pckt *hci_pckt = pData;  
+  /* obtain event packet */
+  hci_event_pckt *event_pckt = (hci_event_pckt*)hci_pckt->data;
+  
+  if(hci_pckt->type != HCI_EVENT_PKT)
+    return;
+  
+  switch(event_pckt->evt){
+    
+  case EVT_DISCONN_COMPLETE:
+    {
+      GAP_DisconnectionComplete_CB();
+    }
+    break;
+    
+  case EVT_LE_META_EVENT:
+    {
+      evt_le_meta_event *evt = (void *)event_pckt->data;
+      
+      switch(evt->subevent){
+      case EVT_LE_CONN_COMPLETE:
+        {
+          evt_le_connection_complete *cc = (void *)evt->data;
+          GAP_ConnectionComplete_CB(cc->peer_bdaddr, cc->handle);
+        }
+        break;
+      }
+    }
+    break;
+    
+  case EVT_VENDOR:
+    {
+      evt_blue_aci *blue_evt = (void*)event_pckt->data;
+      switch(blue_evt->ecode){
+        
+      case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:
+        {
+          if (bnrg_expansion_board == IDB05A1) {
+            evt_gatt_attr_modified_IDB05A1 *evt = (evt_gatt_attr_modified_IDB05A1*)blue_evt->data;
+            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data);
+          }
+          else {
+            evt_gatt_attr_modified_IDB04A1 *evt = (evt_gatt_attr_modified_IDB04A1*)blue_evt->data;
+            Attribute_Modified_CB(evt->attr_handle, evt->data_length, evt->att_data);
+          }
+          
+        }
+        break;
+      case EVT_BLUE_GATT_NOTIFICATION:
+        {
+          evt_gatt_attr_notification *evt = (evt_gatt_attr_notification*)blue_evt->data;
+          GATT_Notification_CB(evt->attr_handle, evt->event_data_length - 2, evt->attr_value);
+        }
+        break;
+      case EVT_BLUE_GATT_DISC_READ_CHAR_BY_UUID_RESP:
+        if(BLE_Role == CLIENT) {
+          PRINTF("EVT_BLUE_GATT_DISC_READ_CHAR_BY_UUID_RESP\n\r");
+          
+          evt_gatt_disc_read_char_by_uuid_resp *resp = (void*)blue_evt->data;
+          
+          if (start_read_tx_char_handle && !end_read_tx_char_handle)
+          {
+            tx_handle = resp->attr_handle;
+            printf("TX Char Handle %04X\n\r", tx_handle);
+          }
+          else if (start_read_rx_char_handle && !end_read_rx_char_handle)
+          {
+            rx_handle = resp->attr_handle;
+            printf("RX Char Handle %04X\n\r", rx_handle);
+          }
+        }
+        break;
+        
+      case EVT_BLUE_GATT_PROCEDURE_COMPLETE:
+        if(BLE_Role == CLIENT) {
+          /* Wait for gatt procedure complete event trigger related to Discovery Charac by UUID */
+          //evt_gatt_procedure_complete *pr = (void*)blue_evt->data;
+          
+          if (start_read_tx_char_handle && !end_read_tx_char_handle)
+          {
+            end_read_tx_char_handle = TRUE;
+          }
+          else if (start_read_rx_char_handle && !end_read_rx_char_handle)
+          {
+            end_read_rx_char_handle = TRUE;
+          }
+        }
+        break;
+      }
+    }
+    break;
+  }    
+}
+//========================================================================

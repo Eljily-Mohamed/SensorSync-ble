@@ -1,0 +1,12 @@
+sensor_service.c:39:12:Add_HWServW2ST_Service	40	static
+sensor_service.c:118:12:Environmental_Update	32	static
+sensor_service.c:136:6:Make_Connection	64	static
+sensor_service.c:150:6:receiveData	24	static
+sensor_service.c:160:6:sendData	16	static
+sensor_service.c:165:6:enableNotification	16	static
+sensor_service.c:180:12:LED_Update	40	static
+sensor_service.c:213:6:Attribute_Modified_CB	16	static
+sensor_service.c:255:6:GAP_ConnectionComplete_CB	24	static
+sensor_service.c:267:6:GAP_DisconnectionComplete_CB	8	static
+sensor_service.c:282:6:GATT_Notification_CB	16	static
+sensor_service.c:289:6:user_notify	56	static

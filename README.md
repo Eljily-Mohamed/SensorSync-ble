@@ -36,7 +36,7 @@ SensorSync-BLE is a complex project designed to retrieve temperature and humidit
 ## Project Post
 
 For a complete overview of the project, check out the LinkedIn post:  
-[**SensorSync-BLE Project Post**](#https://www.linkedin.com/posts/douae-choubri_systaeymesembarquaezs-stm32-iot-ugcPost-7211099812744593408-8UHB?utm_source=share&utm_medium=member_desktop&rcm=ACoAADkDVa0BfranX7gpZUQzs5KaGWm5ejT5LTA)
+[**SensorSync-BLE Project Post**](https://www.linkedin.com/posts/douae-choubri_systaeymesembarquaezs-stm32-iot-ugcPost-7211099812744593408-8UHB?utm_source=share&utm_medium=member_desktop&rcm=ACoAADkDVa0BfranX7gpZUQzs5KaGWm5ejT5LTA)
 
 ## Contact
 
